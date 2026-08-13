@@ -22,16 +22,15 @@ class NewtonianMechanics(Physics):
         self.friction_co = friction_co
         self.gravity = gravity if gravity is not None else vector(0,0,0)
         self.restitution_co = restitution_co
-
     def frictional_force(self):
         if abs(self.velocity) > 0:
-            force_of_friction = (-1)*(self.velocity/abs(self.velocity))*self.mass*abs(self.gravity)
+            self.force_of_friction = (-1)*(self.velocity/abs(self.velocity))*self.mass*abs(self.gravity)
         else:
-            force_of_friction = vector(0,0,0)
-        self.add_force(force_of_friction)
+            self.force_of_friction = vector(0,0,0)
+        self.add_force(self.force_of_friction)
     def gravitational_force(self):
-        force_of_gravity = self.mass * self.gravity
-        self.add_force(force_of_gravity)
+        self.force_of_gravity = self.mass * self.gravity
+        self.add_force(self.force_of_gravity)
     def collision(self, boundary_normal):
         initial_momentum = self.momentum
         final_momentum = initial_momentum - (1+self.restitution_co)*(self.momentum*boundary_normal)*(boundary_normal)
@@ -42,20 +41,18 @@ class NewtonianMechanics(Physics):
         self.position = self.position + self.velocity  * dt
         self.net_force = vector(0,0,0) #clears. prevents foce bleed from last frame
 class RotationalMechanics(NewtonianMechanics):
-    def __init__(self, mass, position, moment_of_inertia_com, friction_co, restitution_co, net_torque = None):
-        super().__init__(mass = mass, position = position, friction_co = friction_co, restitution_co = restitution_co)
+    def __init__(self, mass, position, moment_of_inertia_com, friction_co, restitution_co, net_torque = None, gravity = None):
+        super().__init__(mass = mass, position = position, friction_co = friction_co, restitution_co = restitution_co, gravity = gravity)
         self.moment_of_inertia_com = moment_of_inertia_com
         self.net_torque = net_torque if net_torque is not None else vector(0,0,0)
     def add_torque(self, torque_vector):
         self.net_torque += torque_vector
     def frictional_torque(self, contact_point):
-        super().frictional_force()
-        torque_of_friction = (contact_point - self.position) ^ force_of_friction
-        self.add_torque(torque_of_friction)
+        self.torque_of_friction = (contact_point - self.position) ^ self.force_of_friction
+        self.add_torque(self.torque_of_friction)
     def gravitation_torque(self):
-        super().gravitational_force()
-        torque_of_gravity = (self.position - self.axis_of_rotation) ^ force_of_gravity
-        self.add_torque(torque_of_gravity)
+        self.torque_of_gravity = (self.position - self.axis_of_rotation) ^ self.force_of_gravity
+        self.add_torque(self.torque_of_gravity)
     def update(self, dt):
         super().update(dt)
         self.orbital_radius = self.position - self.axis_of_rotation
