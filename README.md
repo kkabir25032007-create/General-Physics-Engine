@@ -5,3 +5,5 @@ I have been working on this project just to understand the basics of python and 
 If given time, I will port the engine in C++.
 
 Vector.py needs to be rewritten because it converts vectors into tuples, which have no use in my engine.
+
+ Particle collision needs additional parameters that culls pairs that are far away for optimisation.
