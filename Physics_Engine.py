@@ -35,6 +35,25 @@ class NewtonianMechanics(Physics):
         initial_momentum = self.momentum
         final_momentum = initial_momentum - (1+self.restitution_co)*(self.momentum*boundary_normal)*(boundary_normal)
         self.momentum = final_momentum
+    def particle_colllision(self, other, unit_body_normal):
+        self.unit_body_normal = (other.position - self.position)/abs(self.position - other.position)
+        self.relative_velocity = (self.momentum/self.mass - other.momentum/other.mass)*self.unit_body_normal
+        self.distance_between_centre = abs(self.position - other.position)
+        penetration = self.radius + other.radius - self.distance_between_centre
+        if self.distance_between_centre > (self.radius + other.radius):
+            pass
+        elif self.distance_between_centre <= (self.radius + other.radius) and self.relative_velocity >= 0:
+            average_restitution_co = (self.restitution_co + other.restitution_co)/2
+            self.future_momentum = (self.mass)*((self.mass - average_restitution_co*other.mass)*(self.momentum/self.mass) + (((1 + average_restitution_co)*other.momentum)/(self.mass + other.mass)))
+            other.momentum = (other.mass)*((other.mass - average_restitution_co*self.mass)*(other.momentum/other.mass) + (((1 + average_restitution_co)*(self.momentum))/(self.mass + other.mass)))
+            self.momentum = self.future_momentum
+            penetration = 0.8 * penetration
+            self.penetration_share = (1/self.mass)/(1/self.mass + 1/other.mass)
+            other.penetration_share = (1/other.mass)/(1/self.mass + 1/other.mass)
+            self.position -= self.penetration_share*penetration*self.unit_body_normal
+            other.position += other.penetration_share*penetration*self.unit_body_normal
+        elif self.distance_between_centre <= (self.radius + other.radius) and self.relative_velocity < 0:
+            pass
     def update(self, dt):
         self.momentum += self.net_force * dt
         self.velocity = (self.momentum)/self.mass
